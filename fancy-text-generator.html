@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fancy Text Generator</title>
+  <style>
+  * {
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 10px;
+    background-color: #f5f5f5;
+    color: #333;
+    line-height: 1.5;
+  }
+  
+  .container {
+    max-width: 100%;
+    margin: 0 auto;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 16px;
+  }
+  
+  h1 {
+    text-align: center;
+    color: #333;
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #eee;
+    font-size: 1.5rem;
+  }
+  
+  .input-section, .output-section {
+    margin-bottom: 20px;
+  }
+  
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+  }
+  
+  textarea, input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    font-family: Helvetica, Arial, sans-serif;
+  }
+  
+  textarea {
+    min-height: 100px;
+  }
+  
+  .transform-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .transform-btn {
+    padding: 10px 12px;
+    background-color: #4a6fa5;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 16px;
+    min-width: 44px;
+    min-height: 44px;
+    flex: 1 0 calc(50% - 10px);
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  @media (min-width: 480px) {
+    .transform-btn {
+      flex: 1 0 calc(33.333% - 10px);
+    }
+  }
+  
+  @media (min-width: 768px) {
+    .transform-btn {
+      flex: 0 1 auto;
+    }
+  }
+  
+  .transform-btn:hover {
+    background-color: #3a5a8f;
+  }
+  
+  .transform-btn:focus {
+    outline: 3px solid #90caf9;
+  }
+  
+  .transform-btn.active {
+    background-color: #2c4870;
+  }
+  
+  .output-box {
+    border: 1px solid #eee;
+    padding: 15px;
+    border-radius: 4px;
+    position: relative;
+    background-color: #fafafa;
+    margin-bottom: 15px;
+  }
+  
+  .output-title {
+    font-size: 16px;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #555;
+  }
+  
+  .output-text {
+    word-break: break-word;
+    margin-bottom: 40px;
+    min-height: 20px;
+    padding: 10px;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 4px;
+  }
+  
+  .copy-btn {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    background-color: #4a6fa5;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  .copy-btn:hover {
+    background-color: #3a5a8f;
+  }
+  
+  .copy-btn:focus {
+    outline: 3px solid #90caf9;
+  }
+  
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+  
+  .keyboard-hint {
+    margin-top: 8px;
+    font-size: 14px;
+    color: #666;
+    display: none;
+  }
+  
+  kbd {
+    background-color: #f7f7f7;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.2);
+    color: #333;
+    display: inline-block;
+    font-size: 0.85em;
+    font-family: monospace;
+    line-height: 1;
+    padding: 2px 4px;
+    margin: 0 2px;
+    white-space: nowrap;
+  }
+  
+  body.keyboard-user .keyboard-hint {
+    display: block;
+  }
+  
+  .status-message {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 4px;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  
+  .show-status {
+    opacity: 1;
+  }
+  
+  .processing-indicator {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(to right, #4a6fa5, #90caf9);
+    z-index: 1000;
+    animation: loading 2s infinite linear;
+    transform-origin: left;
+    display: none;
+  }
+  
+  @keyframes loading {
+    0% {
+      transform: scaleX(0);
+    }
+    50% {
+      transform: scaleX(0.5);
+    }
+    100% {
+      transform: scaleX(1);
+    }
+  }
+  
+  .processing .processing-indicator {
+    display: block;
+  }
+  
+  @media (min-width: 768px) {
+    .container {
+      max-width: 800px;
+      padding: 20px;
+    }
+    
+    h1 {
+      font-size: 2rem;
+    }
+    
+    .output-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 15px;
+    }
+    
+    .output-box {
+      margin-bottom: 0;
+    }
+  }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Fancy Text Generator</h1>
+    
+    <div class="input-section">
+      <label for="input-text">Enter text to transform:</label>
+      <textarea 
+        id="input-text" 
+        rows="3" 
+        placeholder="Type or paste your text here..." 
+        aria-describedby="input-help"
+      ></textarea>
+      <div id="input-help" class="sr-only">
+        Type text here to see it transformed into different styles
+      </div>
+      <div id="keyboard-hint" class="keyboard-hint">
+        <kbd>Tab</kbd> to navigate, <kbd>Enter</kbd> to select styles
+      </div>
+    </div>
+    
+    <div class="transform-options" role="tablist" aria-label="Text transformation styles">
+      <button class="transform-btn active" data-type="all" role="tab" aria-selected="true">All Styles</button>
+      <button class="transform-btn" data-type="flip" role="tab" aria-selected="false">Upside Down</button>
+      <button class="transform-btn" data-type="tiny" role="tab" aria-selected="false">Tiny</button>
+      <button class="transform-btn" data-type="wide" role="tab" aria-selected="false">Wide</button>
+      <button class="transform-btn" data-type="bubble" role="tab" aria-selected="false">Bubble</button>
+      <button class="transform-btn" data-type="bold" role="tab" aria-selected="false">Bold</button>
+      <button class="transform-btn" data-type="italic" role="tab" aria-selected="false">Italic</button>
+      <button class="transform-btn" data-type="strike" role="tab" aria-selected="false">Strike</button>
+      <button class="transform-btn" data-type="medieval" role="tab" aria-selected="false">Medieval</button>
+      <button class="transform-btn" data-type="cursive" role="tab" aria-selected="false">Cursive</button>
+      <button class="transform-btn" data-type="doublestruck" role="tab" aria-selected="false">Double-Struck</button>
+      <button class="transform-btn" data-type="squared" role="tab" aria-selected="false">Squared</button>
+      <button class="transform-btn" data-type="script" role="tab" aria-selected="false">Script</button>
+    </div>
+    
+    <div class="output-section">
+      <h2 id="output-heading">Generated Text Styles:</h2>
+      <div class="output-container" id="output-container" aria-live="polite" aria-labelledby="output-heading">
+        <!-- Output boxes will be added here -->
+      </div>
+    </div>
+  </div>
+  
+  <div id="status-message" class="status-message" aria-live="assertive"></div>
+  <div class="processing-indicator" id="processing-indicator"></div>
+
+<script type="module">
+// Flip table for upside-down text (from reference code)
+const flipTable = {
+  a: 'ɐ', b: 'q', c: 'ɔ', d: 'p', e: 'ǝ', f: 'ɟ', g: 'ƃ', h: 'ɥ', i: 'ᴉ', j: 'ɾ',
+  k: 'ʞ', l: 'l', m: 'ɯ', n: 'u', o: 'o', p: 'd', q: 'b', r: 'ɹ', s: 's', t: 'ʇ',
+  u: 'n', v: 'ʌ', w: 'ʍ', x: 'x', y: 'ʎ', z: 'z',
+  A: '∀', B: 'B', C: 'Ɔ', D: 'D', E: 'Ǝ', F: 'Ⅎ', G: 'פ', H: 'H', I: 'I', J: 'ſ',
+  K: 'K', L: '˥', M: 'W', N: 'N', O: 'O', P: 'Ԁ', Q: 'Q', R: 'ꓤ', S: 'S', T: '┴',
+  U: '∩', V: 'Λ', W: 'M', X: 'X', Y: '⅄', Z: 'Z',
+  0: '0', 1: 'Ɩ', 2: 'ᄅ', 3: 'Ɛ', 4: 'ㄣ', 5: 'ϛ', 6: '9', 7: 'ㄥ', 8: '8', 9: '6',
+  ',': '\'', '.': '˙', '?': '¿', '!': '¡', '"': '„', '\'': ',', '(': ')', ')': '(',
+  '[': ']', ']': '[', '{': '}', '}': '{', '<': '>', '>': '<', '&': '⅋', '_': '‾',
+};
+
+// Character maps for different text transformations
+const charMaps = {
+  tiny: {
+    a: 'ᵃ', b: 'ᵇ', c: 'ᶜ', d: 'ᵈ', e: 'ᵉ', f: 'ᶠ', g: 'ᵍ', h: 'ʰ', i: 'ⁱ', j: 'ʲ',
+    k: 'ᵏ', l: 'ˡ', m: 'ᵐ', n: 'ⁿ', o: 'ᵒ', p: 'ᵖ', q: 'ᵠ', r: 'ʳ', s: 'ˢ', t: 'ᵗ',
+    u: 'ᵘ', v: 'ᵛ', w: 'ʷ', x: 'ˣ', y: 'ʸ', z: 'ᶻ',
+    A: 'ᴬ', B: 'ᴮ', C: 'ᶜ', D: 'ᴰ', E: 'ᴱ', F: 'ᶠ', G: 'ᴳ', H: 'ᴴ', I: 'ᴵ', J: 'ᴶ',
+    K: 'ᴷ', L: 'ᴸ', M: 'ᴹ', N: 'ᴺ', O: 'ᴼ', P: 'ᴾ', Q: 'ᵠ', R: 'ᴿ', S: 'ˢ', T: 'ᵀ',
+    U: 'ᵁ', V: 'ⱽ', W: 'ᵂ', X: 'ˣ', Y: 'ʸ', Z: 'ᶻ',
+    0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '⁵', 6: '⁶', 7: '⁷', 8: '⁸', 9: '⁹',
+  },
+  wide: {
+    a: 'ａ', b: 'ｂ', c: 'ｃ', d: 'ｄ', e: 'ｅ', f: 'ｆ', g: 'ｇ', h: 'ｈ', i: 'ｉ', j: 'ｊ',
+    k: 'ｋ', l: 'ｌ', m: 'ｍ', n: 'ｎ', o: 'ｏ', p: 'ｐ', q: 'ｑ', r: 'ｒ', s: 'ｓ', t: 'ｔ',
+    u: 'ｕ', v: 'ｖ', w: 'ｗ', x: 'ｘ', y: 'ｙ', z: 'ｚ',
+    A: 'Ａ', B: 'Ｂ', C: 'Ｃ', D: 'Ｄ', E: 'Ｅ', F: 'Ｆ', G: 'Ｇ', H: 'Ｈ', I: 'Ｉ', J: 'Ｊ',
+    K: 'Ｋ', L: 'Ｌ', M: 'Ｍ', N: 'Ｎ', O: 'Ｏ', P: 'Ｐ', Q: 'Ｑ', R: 'Ｒ', S: 'Ｓ', T: 'Ｔ',
+    U: 'Ｕ', V: 'Ｖ', W: 'Ｗ', X: 'Ｘ', Y: 'Ｙ', Z: 'Ｚ',
+    0: '０', 1: '１', 2: '２', 3: '３', 4: '４', 5: '５', 6: '６', 7: '７', 8: '８', 9: '９',
+    ' ': '　', '!': '！', '"': '＂', '#': '＃', '$': '＄', '%': '％', '&': '＆', "'": '＇',
+    '(': '（', ')': '）', '*': '＊', '+': '＋', ',': '，', '-': '－', '.': '．', '/': '／',
+    ':': '：', ';': '；', '<': '＜', '=': '＝', '>': '＞', '?': '？', '@': '＠',
+    '[': '［', '\\': '＼', ']': '］', '^': '＾', '_': '＿', '`': '｀', '{': '｛', '|': '｜',
+    '}': '｝', '~': '～',
+  },
+  bubble: {
+    a: 'ⓐ', b: 'ⓑ', c: 'ⓒ', d: 'ⓓ', e: 'ⓔ', f: 'ⓕ', g: 'ⓖ', h: 'ⓗ', i: 'ⓘ', j: 'ⓙ',
+    k: 'ⓚ', l: 'ⓛ', m: 'ⓜ', n: 'ⓝ', o: 'ⓞ', p: 'ⓟ', q: 'ⓠ', r: 'ⓡ', s: 'ⓢ', t: 'ⓣ',
+    u: 'ⓤ', v: 'ⓥ', w: 'ⓦ', x: 'ⓧ', y: 'ⓨ', z: 'ⓩ',
+    A: 'Ⓐ', B: 'Ⓑ', C: 'Ⓒ', D: 'Ⓓ', E: 'Ⓔ', F: 'Ⓕ', G: 'Ⓖ', H: 'Ⓗ', I: 'Ⓘ', J: 'Ⓙ',
+    K: 'Ⓚ', L: 'Ⓛ', M: 'Ⓜ', N: 'Ⓝ', O: 'Ⓞ', P: 'Ⓟ', Q: 'Ⓠ', R: 'Ⓡ', S: 'Ⓢ', T: 'Ⓣ',
+    U: 'Ⓤ', V: 'Ⓥ', W: 'Ⓦ', X: 'Ⓧ', Y: 'Ⓨ', Z: 'Ⓩ',
+    0: '⓪', 1: '①', 2: '②', 3: '③', 4: '④', 5: '⑤', 6: '⑥', 7: '⑦', 8: '⑧', 9: '⑨',
+  },
+  bold: {
+    a: '𝗮', b: '𝗯', c: '𝗰', d: '𝗱', e: '𝗲', f: '𝗳', g: '𝗴', h: '𝗵', i: '𝗶', j: '𝗷',
+    k: '𝗸', l: '𝗹', m: '𝗺', n: '𝗻', o: '𝗼', p: '𝗽', q: '𝗾', r: '𝗿', s: '𝘀', t: '𝘁',
+    u: '𝘂', v: '𝘃', w: '𝘄', x: '𝘅', y: '𝘆', z: '𝘇',
+    A: '𝗔', B: '𝗕', C: '𝗖', D: '𝗗', E: '𝗘', F: '𝗙', G: '𝗚', H: '𝗛', I: '𝗜', J: '𝗝',
+    K: '𝗞', L: '𝗟', M: '𝗠', N: '𝗡', O: '𝗢', P: '𝗣', Q: '𝗤', R: '𝗥', S: '𝗦', T: '𝗧',
+    U: '𝗨', V: '𝗩', W: '𝗪', X: '𝗫', Y: '𝗬', Z: '𝗭',
+    0: '𝟬', 1: '𝟭', 2: '𝟮', 3: '𝟯', 4: '𝟰', 5: '𝟱', 6: '𝟲', 7: '𝟳', 8: '𝟴', 9: '𝟵',
+  },
+  italic: {
+    a: '𝘢', b: '𝘣', c: '𝘤', d: '𝘥', e: '𝘦', f: '𝘧', g: '𝘨', h: '𝘩', i: '𝘪', j: '𝘫',
+    k: '𝘬', l: '𝘭', m: '𝘮', n: '𝘯', o: '𝘰', p: '𝘱', q: '𝘲', r: '𝘳', s: '𝘴', t: '𝘵',
+    u: '𝘶', v: '𝘷', w: '𝘸', x: '𝘹', y: '𝘺', z: '𝘻',
+    A: '𝘈', B: '𝘉', C: '𝘊', D: '𝘋', E: '𝘌', F: '𝘍', G: '𝘎', H: '𝘏', I: '𝘐', J: '𝘑',
+    K: '𝘒', L: '𝘓', M: '𝘔', N: '𝘕', O: '𝘖', P: '𝘗', Q: '𝘘', R: '𝘙', S: '𝘚', T: '𝘛',
+    U: '𝘜', V: '𝘝', W: '𝘞', X: '𝘟', Y: '𝘠', Z: '𝘡',
+  },
+  medieval: {
+    a: '𝔞', b: '𝔟', c: '𝔠', d: '𝔡', e: '𝔢', f: '𝔣', g: '𝔤', h: '𝔥', i: '𝔦', j: '𝔧',
+    k: '𝔨', l: '𝔩', m: '𝔪', n: '𝔫', o: '𝔬', p: '𝔭', q: '𝔮', r: '𝔯', s: '𝔰', t: '𝔱',
+    u: '𝔲', v: '𝔳', w: '𝔴', x: '𝔵', y: '𝔶', z: '𝔷',
+    A: '𝔄', B: '𝔅', C: 'ℭ', D: '𝔇', E: '𝔈', F: '𝔉', G: '𝔊', H: 'ℌ', I: 'ℑ', J: '𝔍',
+    K: '𝔎', L: '𝔏', M: '𝔐', N: '𝔑', O: '𝔒', P: '𝔓', Q: '𝔔', R: 'ℜ', S: '𝔖', T: '𝔗',
+    U: '𝔘', V: '𝔙', W: '𝔚', X: '𝔛', Y: '𝔜', Z: 'ℨ',
+  },
+  cursive: {
+    a: '𝓪', b: '𝓫', c: '𝓬', d: '𝓭', e: '𝓮', f: '𝓯', g: '𝓰', h: '𝓱', i: '𝓲', j: '𝓳',
+    k: '𝓴', l: '𝓵', m: '𝓶', n: '𝓷', o: '𝓸', p: '𝓹', q: '𝓺', r: '𝓻', s: '𝓼', t: '𝓽',
+    u: '𝓾', v: '𝓿', w: '𝔀', x: '𝔁', y: '𝔂', z: '𝔃',
+    A: '𝓐', B: '𝓑', C: '𝓒', D: '𝓓', E: '𝓔', F: '𝓕', G: '𝓖', H: '𝓗', I: '𝓘', J: '𝓙',
+    K: '𝓚', L: '𝓛', M: '𝓜', N: '𝓝', O: '𝓞', P: '𝓟', Q: '𝓠', R: '𝓡', S: '𝓢', T: '𝓣',
+    U: '𝓤', V: '𝓥', W: '𝓦', X: '𝓧', Y: '𝓨', Z: '𝓩',
+  },
+  doublestruck: {
+    a: '𝕒', b: '𝕓', c: '𝕔', d: '𝕕', e: '𝕖', f: '𝕗', g: '𝕘', h: '𝕙', i: '𝕚', j: '𝕛',
+    k: '𝕜', l: '𝕝', m: '𝕞', n: '𝕟', o: '𝕠', p: '𝕡', q: '𝕢', r: '𝕣', s: '𝕤', t: '𝕥',
+    u: '𝕦', v: '𝕧', w: '𝕨', x: '𝕩', y: '𝕪', z: '𝕫',
+    A: '𝔸', B: '𝔹', C: 'ℂ', D: '𝔻', E: '𝔼', F: '𝔽', G: '𝔾', H: 'ℍ', I: '𝕀', J: '𝕁',
+    K: '𝕂', L: '𝕃', M: '𝕄', N: 'ℕ', O: '𝕆', P: 'ℙ', Q: 'ℚ', R: 'ℝ', S: '𝕊', T: '𝕋',
+    U: '𝕌', V: '𝕍', W: '𝕎', X: '𝕏', Y: '𝕐', Z: 'ℤ',
+    0: '𝟘', 1: '𝟙', 2: '𝟚', 3: '𝟛', 4: '𝟜', 5: '𝟝', 6: '𝟞', 7: '𝟟', 8: '𝟠', 9: '𝟡',
+  },
+  squared: {
+    a: '🄰', b: '🄱', c: '🄲', d: '🄳', e: '🄴', f: '🄵', g: '🄶', h: '🄷', i: '🄸', j: '🄹',
+    k: '🄺', l: '🄻', m: '🄼', n: '🄽', o: '🄾', p: '🄿', q: '🅀', r: '🅁', s: '🅂', t: '🅃',
+    u: '🅄', v: '🅅', w: '🅆', x: '🅇', y: '🅈', z: '🅉',
+    A: '🄰', B: '🄱', C: '🄲', D: '🄳', E: '🄴', F: '🄵', G: '🄶', H: '🄷', I: '🄸', J: '🄹',
+    K: '🄺', L: '🄻', M: '🄼', N: '🄽', O: '🄾', P: '🄿', Q: '🅀', R: '🅁', S: '🅂', T: '🅃',
+    U: '🅄', V: '🅅', W: '🅆', X: '🅇', Y: '🅈', Z: '🅉',
+    0: '0️⃣', 1: '1️⃣', 2: '2️⃣', 3: '3️⃣', 4: '4️⃣', 5: '5️⃣', 6: '6️⃣', 7: '7️⃣', 8: '8️⃣', 9: '9️⃣',
+  },
+  script: {
+    a: '𝒶', b: '𝒷', c: '𝒸', d: '𝒹', e: 'ℯ', f: '𝒻', g: 'ℊ', h: '𝒽', i: '𝒾', j: '𝒿',
+    k: '𝓀', l: 'ℓ', m: '𝓂', n: '𝓃', o: 'ℴ', p: '𝓅', q: '𝓆', r: '𝓇', s: '𝓈', t: '𝓉',
+    u: '𝓊', v: '𝓋', w: '𝓌', x: '𝓍', y: '𝓎', z: '𝓏',
+    A: '𝒜', B: 'ℬ', C: '𝒞', D: '𝒟', E: 'ℰ', F: 'ℱ', G: '𝒢', H: 'ℋ', I: 'ℐ', J: '𝒥',
+    K: '𝒦', L: 'ℒ', M: 'ℳ', N: '𝒩', O: '𝒪', P: '𝒫', Q: '𝒬', R: 'ℛ', S: '𝒮', T: '𝒯',
+    U: '𝒰', V: '𝒱', W: '𝒲', X: '𝒳', Y: '𝒴', Z: '𝒵',
+  }
+};
+
+// Transformation functions
+const transforms = {
+  // Upside down text
+  flip: function(text) {
+    let result = "";
+    // Loop through the text in reverse order
+    for (let i = text.length - 1; i >= 0; i--) {
+      const char = text[i];
+      // Use flipTable or the original character
+      result += (flipTable[char] || char);
+    }
+    return result;
+  },
+  
+  // Map characters using charMaps
+  tiny: function(text) {
+    return text.split('').map(char => charMaps.tiny[char] || char).join('');
+  },
+  
+  wide: function(text) {
+    return text.split('').map(char => charMaps.wide[char] || char).join('');
+  },
+  
+  bubble: function(text) {
+    return text.split('').map(char => charMaps.bubble[char] || char).join('');
+  },
+  
+  bold: function(text) {
+    return text.split('').map(char => charMaps.bold[char] || char).join('');
+  },
+  
+  italic: function(text) {
+    return text.split('').map(char => charMaps.italic[char] || char).join('');
+  },
+  
+  medieval: function(text) {
+    return text.split('').map(char => charMaps.medieval[char] || char).join('');
+  },
+  
+  cursive: function(text) {
+    return text.split('').map(char => charMaps.cursive[char] || char).join('');
+  },
+  
+  doublestruck: function(text) {
+    return text.split('').map(char => charMaps.doublestruck[char] || char).join('');
+  },
+  
+  squared: function(text) {
+    return text.split('').map(char => charMaps.squared[char] || char).join('');
+  },
+  
+  script: function(text) {
+    return text.split('').map(char => charMaps.script[char] || char).join('');
+  },
+  
+  // Strike-through text
+  strike: function(text) {
+    return text.split('').map(char => char + '\u0336').join('');
+  }
+};
+
+// Transformation titles and descriptions
+const transformTitles = {
+  flip: 'Upside Down Text',
+  tiny: 'Tiny Text',
+  wide: 'Wide Text',
+  bubble: 'Bubble Text',
+  bold: 'Bold Text',
+  italic: 'Italic Text',
+  strike: 'Strikethrough Text',
+  medieval: 'Medieval Text',
+  cursive: 'Cursive Text',
+  doublestruck: 'Double-Struck Text',
+  squared: 'Squared Text',
+  script: 'Script Text'
+};
+
+// DOM elements
+const inputEl = document.getElementById('input-text');
+const outputContainer = document.getElementById('output-container');
+const transformButtons = document.querySelectorAll('.transform-btn');
+const statusMessage = document.getElementById('status-message');
+
+// Show status message
+function showStatus(message, duration = 2000) {
+  statusMessage.textContent = message;
+  statusMessage.classList.add('show-status');
+  setTimeout(() => {
+    statusMessage.classList.remove('show-status');
+  }, duration);
+}
+
+// Function to create an output box
+function createOutputBox(title, text, transformType) {
+  const outputBox = document.createElement('div');
+  outputBox.className = 'output-box';
+  outputBox.dataset.type = transformType;
+  outputBox.setAttribute('role', 'tabpanel');
+  outputBox.id = `panel-${transformType}`;
+  
+  const titleEl = document.createElement('div');
+  titleEl.className = 'output-title';
+  titleEl.textContent = title;
+  
+  const textEl = document.createElement('div');
+  textEl.className = 'output-text';
+  textEl.textContent = text;
+  textEl.setAttribute('aria-label', `${title}: ${text}`);
+  
+  const copyBtn = document.createElement('button');
+  copyBtn.className = 'copy-btn';
+  copyBtn.textContent = 'Copy';
+  copyBtn.setAttribute('aria-label', `Copy ${title}`);
+  copyBtn.onclick = function() {
+    // Use the clipboard API to copy text
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text)
+        .then(() => {
+          // Show confirmation both visually and for screen readers
+          copyBtn.textContent = 'Copied!';
+          showStatus(`${title} copied to clipboard`);
+          setTimeout(() => {
+            copyBtn.textContent = 'Copy';
+          }, 1500);
+        })
+        .catch(() => {
+          // Fallback for browsers that don't support clipboard API
+          const textarea = document.createElement('textarea');
+          textarea.value = text;
+          textarea.style.position = 'fixed';  // Avoid scrolling to bottom
+          document.body.appendChild(textarea);
+          textarea.focus();
+          textarea.select();
+          
+          try {
+            document.execCommand('copy');
+            copyBtn.textContent = 'Copied!';
+            showStatus(`${title} copied to clipboard`);
+            setTimeout(() => {
+              copyBtn.textContent = 'Copy';
+            }, 1500);
+          } catch (err) {
+            showStatus('Failed to copy text');
+          }
+          
+          document.body.removeChild(textarea);
+        });
+    } else {
+      // Old-school fallback
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      
+      try {
+        const successful = document.execCommand('copy');
+        copyBtn.textContent = successful ? 'Copied!' : 'Copy';
+        showStatus(successful ? `${title} copied to clipboard` : 'Failed to copy text');
+        setTimeout(() => {
+          copyBtn.textContent = 'Copy';
+        }, 1500);
+      } catch (err) {
+        showStatus('Failed to copy text');
+      }
+      
+      document.body.removeChild(textarea);
+    }
+  };
+  
+  outputBox.appendChild(titleEl);
+  outputBox.appendChild(textEl);
+  outputBox.appendChild(copyBtn);
+  
+  return outputBox;
+}
+
+// Utility function to debounce function calls
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
+// Optimization for long text transformations
+function optimizedTransform(text, transformFn) {
+  // For very long text, process in chunks to avoid UI freezing
+  const CHUNK_SIZE = 1000;
+  
+  if (text.length <= CHUNK_SIZE) {
+    return transformFn(text);
+  }
+  
+  // Process text in chunks for very long inputs
+  let result = '';
+  for (let i = 0; i < text.length; i += CHUNK_SIZE) {
+    const chunk = text.slice(i, i + CHUNK_SIZE);
+    result += transformFn(chunk);
+    
+    // Allow UI to breathe for extremely long texts
+    if (i > 0 && i % (CHUNK_SIZE * 5) === 0) {
+      console.log(`Processed ${i} of ${text.length} characters`);
+    }
+  }
+  
+  return result;
+}
+
+// Function to generate all outputs
+function generateOutputs(inputText, activeType = 'all') {
+  // Clear previous outputs
+  outputContainer.innerHTML = '';
+  
+  if (!inputText.trim()) {
+    const emptyMessage = document.createElement('div');
+    emptyMessage.textContent = 'Enter some text to see transformations';
+    emptyMessage.style.padding = '20px';
+    emptyMessage.style.color = '#777';
+    outputContainer.appendChild(emptyMessage);
+    return;
+  }
+  
+  // Show processing indicator for any text transformation
+  document.body.classList.add('processing');
+  
+  // Use setTimeout to prevent UI freezing on long text
+  setTimeout(() => {
+    try {
+      // Generate outputs based on active type
+      if (activeType === 'all') {
+        Object.keys(transforms).forEach(type => {
+          try {
+            const transformedText = optimizedTransform(inputText, transforms[type]);
+            const outputBox = createOutputBox(transformTitles[type], transformedText, type);
+            outputContainer.appendChild(outputBox);
+          } catch (error) {
+            console.error(`Error transforming with ${type}:`, error);
+            const errorBox = document.createElement('div');
+            errorBox.className = 'output-box';
+            errorBox.innerHTML = `<div class="output-title">${transformTitles[type]} - Error</div>
+                                <div class="output-text">Sorry, this transformation failed.</div>`;
+            outputContainer.appendChild(errorBox);
+          }
+        });
+      } else {
+        try {
+          const transformedText = optimizedTransform(inputText, transforms[activeType]);
+          const outputBox = createOutputBox(transformTitles[activeType], transformedText, activeType);
+          outputContainer.appendChild(outputBox);
+        } catch (error) {
+          console.error(`Error transforming with ${activeType}:`, error);
+          showStatus(`Error transforming text to ${transformTitles[activeType]}`);
+          const errorBox = document.createElement('div');
+          errorBox.className = 'output-box';
+          errorBox.innerHTML = `<div class="output-title">${transformTitles[activeType]} - Error</div>
+                              <div class="output-text">Sorry, this transformation failed.</div>`;
+          outputContainer.appendChild(errorBox);
+        }
+      }
+    } finally {
+      // Hide processing indicator when done
+      document.body.classList.remove('processing');
+    }
+  }, 10);
+}
+
+// Event listeners
+const debouncedGenerateOutputs = debounce((value, type) => {
+  generateOutputs(value, type);
+}, 300);
+
+inputEl.addEventListener('input', () => {
+  const activeButton = document.querySelector('.transform-btn.active');
+  const activeType = activeButton.dataset.type;
+  debouncedGenerateOutputs(inputEl.value, activeType);
+});
+
+// Button event listeners
+transformButtons.forEach(button => {
+  button.addEventListener('click', () => {
+    // Update active button
+    transformButtons.forEach(btn => {
+      btn.classList.remove('active');
+      btn.setAttribute('aria-selected', 'false');
+    });
+    button.classList.add('active');
+    button.setAttribute('aria-selected', 'true');
+    
+    // Generate outputs with selected type
+    generateOutputs(inputEl.value, button.dataset.type);
+  });
+  
+  // Make buttons accessible with keyboard
+  button.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      button.click();
+    }
+  });
+});
+
+// Detect keyboard users to show relevant hints
+window.addEventListener('keydown', function(e) {
+  if (e.key === 'Tab') {
+    document.body.classList.add('keyboard-user');
+  }
+});
+
+window.addEventListener('mousedown', function() {
+  document.body.classList.remove('keyboard-user');
+});
+
+// Initialize with placeholder text
+window.addEventListener('DOMContentLoaded', () => {
+  inputEl.value = "Hello world!";
+  generateOutputs(inputEl.value);
+});
+</script>
+</body>
+</html>
